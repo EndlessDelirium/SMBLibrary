@@ -30,7 +30,11 @@ namespace Utilities
             LittleEndianWriter.WriteUInt32(tcp_keepalive, 0, Convert.ToUInt32(enable));
             LittleEndianWriter.WriteUInt32(tcp_keepalive, 4, (uint)timeout.TotalMilliseconds);
             LittleEndianWriter.WriteUInt32(tcp_keepalive, 8, (uint)interval.TotalMilliseconds);
+#if WindowsCE
+            socket.IOControl(unchecked((int)0x98000001), tcp_keepalive, null);
+#else
             socket.IOControl(IOControlCode.KeepAliveValues, tcp_keepalive, null);
+#endif
         }
 
         /// <summary>
@@ -45,7 +49,12 @@ namespace Utilities
                     try
                     {
                         socket.Shutdown(SocketShutdown.Both);
+#if WindowsCE
+                        socket.Close();
+#else
                         socket.Disconnect(false);
+#endif
+                        
                     }
                     catch (ObjectDisposedException)
                     {

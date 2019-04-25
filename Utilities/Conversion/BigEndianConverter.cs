@@ -39,9 +39,9 @@ namespace Utilities
         public static Guid ToGuid(byte[] buffer, int offset)
         {
             return new Guid(
-                ToUInt32(buffer, offset + 0),
-                ToUInt16(buffer, offset + 4),
-                ToUInt16(buffer, offset + 6),
+                (int)ToUInt32(buffer, offset + 0),
+                (short)ToUInt16(buffer, offset + 4),
+                (short)ToUInt16(buffer, offset + 6),
                 buffer[offset + 8],
                 buffer[offset + 9],
                 buffer[offset + 10],

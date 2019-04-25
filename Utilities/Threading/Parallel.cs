@@ -38,7 +38,11 @@ namespace Utilities
         /// </param>
         public static void For(int fromInclusive, int toExclusive, int chunkSize, ForDelegate forDelegate)
         {
+#if WindowsCE
+            int threadCount = Environment2.ProcessorCount;
+#else
             int threadCount = Environment.ProcessorCount;
+#endif
             For(fromInclusive, toExclusive, chunkSize, threadCount, forDelegate);
         }
 

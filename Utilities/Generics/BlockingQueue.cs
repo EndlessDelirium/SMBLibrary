@@ -19,7 +19,11 @@ namespace Utilities
                 m_count++;
                 if (m_queue.Count == 1)
                 {
+#if WindowsCE
+                    Monitor2.Pulse(m_queue);
+#else
                     Monitor.Pulse(m_queue);
+#endif
                 }
             }
         }
@@ -39,7 +43,11 @@ namespace Utilities
                 }
                 if (m_queue.Count == items.Count)
                 {
+#if WindowsCE
+                    Monitor2.Pulse(m_queue);
+#else
                     Monitor.Pulse(m_queue);
+#endif
                 }
             }
         }
@@ -51,7 +59,11 @@ namespace Utilities
             {
                 while (m_queue.Count == 0)
                 {
+#if WindowsCE
+                    Monitor2.Wait(m_queue);
+#else
                     Monitor.Wait(m_queue);
+#endif
                     if (m_stopping)
                     {
                         item = default(T);
@@ -70,7 +82,11 @@ namespace Utilities
             lock (m_queue)
             {
                 m_stopping = true;
+#if WindowsCE
+                Monitor2.PulseAll(m_queue);
+#else
                 Monitor.PulseAll(m_queue);
+#endif
             }
         }
 

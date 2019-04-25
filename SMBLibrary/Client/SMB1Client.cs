@@ -78,7 +78,8 @@ namespace SMBLibrary.Client
 
                 try
                 {
-                    m_clientSocket.Connect(serverAddress, port);
+                    IPEndPoint endpoint = new IPEndPoint(serverAddress, port);
+                    m_clientSocket.Connect(endpoint);
                 }
                 catch (SocketException)
                 {
@@ -105,7 +106,11 @@ namespace SMBLibrary.Client
         {
             if (m_isConnected)
             {
+#if WindowsCE
+                m_clientSocket.Close();
+#else
                 m_clientSocket.Disconnect(false);
+#endif
                 m_isConnected = false;
             }
         }
@@ -115,8 +120,13 @@ namespace SMBLibrary.Client
             if (m_transport == SMBTransportType.NetBiosOverTCP)
             {
                 SessionRequestPacket sessionRequest = new SessionRequestPacket();
-                sessionRequest.CalledName = NetBiosUtils.GetMSNetBiosName("*SMBSERVER", NetBiosSuffix.FileServiceService); ;
-                sessionRequest.CallingName = NetBiosUtils.GetMSNetBiosName(Environment.MachineName, NetBiosSuffix.WorkstationService);
+                sessionRequest.CalledName = NetBiosUtils.GetMSNetBiosName("*SMBSERVER", NetBiosSuffix.FileServiceService);
+#if WindowsCE
+                string machineName = OpenNETCF.Environment2.MachineName;
+#else
+                string machineName = Environment.MachineName;
+#endif
+                sessionRequest.CallingName = NetBiosUtils.GetMSNetBiosName(machineName, NetBiosSuffix.WorkstationService);
                 TrySendPacket(m_clientSocket, sessionRequest);
             }
             NegotiateRequest request = new NegotiateRequest();
@@ -219,7 +229,12 @@ namespace SMBLibrary.Client
                     // https://msdn.microsoft.com/en-us/library/ee441701.aspx
                     // https://msdn.microsoft.com/en-us/library/cc236700.aspx
                     request.OEMPassword = NTLMCryptography.ComputeLMv2Response(m_serverChallenge, clientChallenge, password, userName, domainName);
-                    NTLMv2ClientChallenge clientChallengeStructure = new NTLMv2ClientChallenge(DateTime.UtcNow, clientChallenge, AVPairUtils.GetAVPairSequence(domainName, Environment.MachineName));
+#if WindowsCE
+                    string machineName = OpenNETCF.Environment2.MachineName;
+#else
+                    string machineName = Environment.MachineName;
+#endif
+                    NTLMv2ClientChallenge clientChallengeStructure = new NTLMv2ClientChallenge(DateTime.UtcNow, clientChallenge, AVPairUtils.GetAVPairSequence(domainName, machineName));
                     byte[] temp = clientChallengeStructure.GetBytesPadded();
                     byte[] proofStr = NTLMCryptography.ComputeNTLMv2Proof(m_serverChallenge, temp, password, userName, domainName);
                     request.UnicodePassword = ByteUtils.Concatenate(proofStr, temp);
@@ -509,7 +524,11 @@ namespace SMBLibrary.Client
 
         private void Log(string message)
         {
-            System.Diagnostics.Debug.Print(message);
+#if WindowsCE
+            System.Diagnostics.Debug.Write(message);
+#else
+    System.Diagnostics.Debug.Print(message);
+#endif
         }
 
         internal void TrySendMessage(SMB1Command request)
@@ -589,7 +608,7 @@ namespace SMBLibrary.Client
         {
             get
             {
-                return ClientMaxBufferSize - (SMB1Header.Length + 3 + ReadAndXResponse.ParametersLength);
+                return unchecked((uint)(ClientMaxBufferSize - (SMB1Header.Length + 3 + ReadAndXResponse.ParametersLength)));
             }
         }
 

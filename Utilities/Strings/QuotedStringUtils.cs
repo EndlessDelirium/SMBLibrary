@@ -123,4 +123,14 @@ namespace Utilities
             return result;
         }
     }
+
+#if WindowsCE
+    [System.Flags]
+    [System.Runtime.InteropServices.ComVisible(false)]
+    public enum StringSplitOptions
+    {
+        None = 0,
+        RemoveEmptyEntries = 1
+    }
+#endif
 }

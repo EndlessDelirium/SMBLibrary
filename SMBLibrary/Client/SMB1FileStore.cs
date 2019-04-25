@@ -22,7 +22,12 @@ namespace SMBLibrary.Client
             m_treeID = treeID;
         }
 
+
+#if WindowsCE
+        public NTStatus CreateFile(out object handle, out FileStatus fileStatus, string path, AccessMask desiredAccess, FileAttributes fileAttributes, ShareAccess shareAccess, CreateDisposition createDisposition, CreateOptions createOptions)
+#else
         public NTStatus CreateFile(out object handle, out FileStatus fileStatus, string path, AccessMask desiredAccess, FileAttributes fileAttributes, ShareAccess shareAccess, CreateDisposition createDisposition, CreateOptions createOptions, SecurityContext securityContext)
+#endif
         {
             handle = null;
             fileStatus = FileStatus.FILE_DOES_NOT_EXIST;

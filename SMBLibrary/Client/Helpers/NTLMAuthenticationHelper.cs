@@ -58,9 +58,15 @@ namespace SMBLibrary.Client
                 negotiateMessage.NegotiateFlags |= NegotiateFlags.ExtendedSessionSecurity;
             }
 
+#if WindowsCE
+            string machineName = OpenNETCF.Environment2.MachineName;
+#else
+            string machineName = Environment.MachineName;
+#endif
+
             negotiateMessage.Version = NTLMVersion.Server2003;
             negotiateMessage.DomainName = domainName;
-            negotiateMessage.Workstation = Environment.MachineName;
+            negotiateMessage.Workstation = machineName;
             if (useGSSAPI)
             {
                 SimpleProtectedNegotiationTokenInit outputToken = new SimpleProtectedNegotiationTokenInit();
@@ -138,10 +144,14 @@ namespace SMBLibrary.Client
             {
                 authenticateMessage.NegotiateFlags |= NegotiateFlags.ExtendedSessionSecurity;
             }
-
+#if WindowsCE
+            string machineName = OpenNETCF.Environment2.MachineName;
+#else
+            string machineName = Environment.MachineName;
+#endif
             authenticateMessage.UserName = userName;
             authenticateMessage.DomainName = domainName;
-            authenticateMessage.WorkStation = Environment.MachineName;
+            authenticateMessage.WorkStation = machineName;
             byte[] sessionBaseKey;
             byte[] keyExchangeKey;
             if (authenticationMethod == AuthenticationMethod.NTLMv1 || authenticationMethod == AuthenticationMethod.NTLMv1ExtendedSessionSecurity)
@@ -172,7 +182,11 @@ namespace SMBLibrary.Client
 
                 // https://msdn.microsoft.com/en-us/library/cc236700.aspx
                 byte[] responseKeyNT = NTLMCryptography.NTOWFv2(password, userName, domainName);
+#if WindowsCE
+                sessionBaseKey = new OpenNETCF.Security.Cryptography.HMACMD5(responseKeyNT).ComputeHash(ntProofStr);
+#else
                 sessionBaseKey = new HMACMD5(responseKeyNT).ComputeHash(ntProofStr);
+#endif
                 keyExchangeKey = sessionBaseKey;
             }
             authenticateMessage.Version = NTLMVersion.Server2003;

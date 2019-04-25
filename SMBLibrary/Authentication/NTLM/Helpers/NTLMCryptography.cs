@@ -41,8 +41,14 @@ namespace SMBLibrary.Authentication.NTLM
         {
             byte[] key = LMOWFv2(password, user, domain);
             byte[] bytes = ByteUtils.Concatenate(serverChallenge, clientChallenge);
+            
+#if WindowsCE
+            OpenNETCF.Security.Cryptography.HMACMD5 hmac = new OpenNETCF.Security.Cryptography.HMACMD5(key);
+            byte[] hash = hmac.ComputeHash(bytes);
+#else
             HMACMD5 hmac = new HMACMD5(key);
             byte[] hash = hmac.ComputeHash(bytes, 0, bytes.Length);
+#endif
 
             return ByteUtils.Concatenate(hash, clientChallenge);
         }
@@ -56,8 +62,13 @@ namespace SMBLibrary.Authentication.NTLM
             byte[] key = NTOWFv2(password, user, domain);
             byte[] temp = clientChallengeStructurePadded;
 
+#if WindowsCE
+            OpenNETCF.Security.Cryptography.HMACMD5 hmac = new OpenNETCF.Security.Cryptography.HMACMD5(key);
+            byte[] _NTProof = hmac.ComputeHash(ByteUtils.Concatenate(serverChallenge, temp));
+#else
             HMACMD5 hmac = new HMACMD5(key);
             byte[] _NTProof = hmac.ComputeHash(ByteUtils.Concatenate(serverChallenge, temp), 0, serverChallenge.Length + temp.Length);
+#endif
             return _NTProof;
         }
 
@@ -123,7 +134,11 @@ namespace SMBLibrary.Authentication.NTLM
 
         public static Encoding GetOEMEncoding()
         {
+#if WindowsCE
+            return Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.ANSICodePage);  // America First?!??
+#else
             return Encoding.GetEncoding(CultureInfo.CurrentCulture.TextInfo.OEMCodePage);
+#endif
         }
 
         /// <summary>
@@ -170,8 +185,13 @@ namespace SMBLibrary.Authentication.NTLM
             byte[] key = new MD4().GetByteHashFromBytes(passwordBytes);
             string text = user.ToUpper() + domain;
             byte[] bytes = UnicodeEncoding.Unicode.GetBytes(text);
+#if WindowsCE
+            OpenNETCF.Security.Cryptography.HMACMD5 hmac = new OpenNETCF.Security.Cryptography.HMACMD5(key);
+            return hmac.ComputeHash(bytes);
+#else
             HMACMD5 hmac = new HMACMD5(key);
             return hmac.ComputeHash(bytes, 0, bytes.Length);
+#endif
         }
 
         /// <summary>
@@ -235,7 +255,11 @@ namespace SMBLibrary.Authentication.NTLM
             else
             {
                 byte[] buffer = ByteUtils.Concatenate(serverChallenge, ByteReader.ReadBytes(lmChallengeResponse, 0, 8));
+#if WindowsCE
+                byte[] keyExchangeKey = new OpenNETCF.Security.Cryptography.HMACMD5(sessionBaseKey).ComputeHash(buffer);
+#else
                 byte[] keyExchangeKey = new HMACMD5(sessionBaseKey).ComputeHash(buffer);
+#endif
                 return keyExchangeKey;
             }
         }

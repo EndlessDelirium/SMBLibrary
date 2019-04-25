@@ -1,3 +1,34 @@
+About SMBLibrary for WindowsCE:
+===============================
+This is a port of SMBLibrary for WindowsCE. Windows CE only supports SMB v1.0. For security reasons Microsoft now disables v1.0 on the desktop and server Windows
+versions. Companies with WindowsCE based products are facing understandably unhappy customers because network drive features now seem to be broken. Since there are
+no updates for Windows CE that would bring SMB v2.0 on OS level the only remaining option that is halfway feasible is to use a client side library. Unfortunately
+none of them was made for the .NET Compact Framework, which is why this fork exists.
+
+How to use:
+-----------
+- Open SMBCompactEdition.sln, build the two library projects and reference the dll's in your project
+- Example code on how to use the library can be found here: https://github.com/TalAloni/SMBLibrary/issues/9 
+
+Known Issues:
+-------------
+- The codebase is work in progress and largely untested on WindowsCE. Therefore better not expect that everything just works nicely.
+- Server features are currently not available
+- The Win32 implementations have been removed
+
+Dependencies:
+-------------
+This port makes use of two additional projects for things missing in the .NET Compact Framework:
+- OpenNETCF for Cryptography (https://github.com/ctacke/sdf)
+- NETStandard.WindowsCE for Threading (https://github.com/WindowsCE/NETStandard.WindowsCE)
+
+Contributions:
+--------------
+The idea is to keep things as close to the original sources as possible to limit the trouble for merging in SMB v3.0 support later on or merging things back to
+the original project in case the owner is interested in supporting WindowsCE.
+You're very welcome to provide pull requests.
+
+
 About SMBLibrary:
 =================
 SMBLibrary is an open-source C# SMB 1.0/CIFS, SMB 2.0 and SMB 2.1 server implementation.  

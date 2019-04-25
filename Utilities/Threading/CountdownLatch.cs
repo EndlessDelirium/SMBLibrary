@@ -14,7 +14,11 @@ namespace Utilities
 
         public void Increment()
         {
+#if WindowsCE
+            int count = Interlocked2.Increment(ref m_count);
+#else
             int count = Interlocked.Increment(ref m_count);
+#endif
             if (count == 1)
             {
                 m_waitHandle.Reset();
@@ -23,7 +27,11 @@ namespace Utilities
 
         public void Add(int value)
         {
+#if WindowsCE
+            int count = Interlocked2.Add(ref m_count, value);
+#else
             int count = Interlocked.Add(ref m_count, value);
+#endif
             if (count == value)
             {
                 m_waitHandle.Reset();
@@ -32,7 +40,11 @@ namespace Utilities
 
         public void Decrement()
         {
+#if WindowsCE
+            int count = Interlocked2.Decrement(ref m_count);
+#else
             int count = Interlocked.Decrement(ref m_count);
+#endif
             if (m_count == 0)
             {
                 m_waitHandle.Set();

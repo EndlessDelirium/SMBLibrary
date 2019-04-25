@@ -16,6 +16,9 @@ using SMBLibrary.NetBios;
 using SMBLibrary.Services;
 using SMBLibrary.SMB2;
 using Utilities;
+#if WindowsCE
+using OpenNETCF.Security.Cryptography;
+#endif
 
 namespace SMBLibrary.Client
 {
@@ -70,10 +73,12 @@ namespace SMBLibrary.Client
 
                 try
                 {
-                    m_clientSocket.Connect(serverAddress, port);
+                    IPEndPoint endpoint = new IPEndPoint(serverAddress, port);
+                    m_clientSocket.Connect(endpoint);
                 }
-                catch (SocketException)
+                catch (SocketException ex)
                 {
+                    Log("[Connect] Error while opening tcp socket: " + ex.Message);
                     return false;
                 }
 
@@ -97,7 +102,11 @@ namespace SMBLibrary.Client
         {
             if (m_isConnected)
             {
+#if WindowsCE
+                m_clientSocket.Close();
+#else
                 m_clientSocket.Disconnect(false);
+#endif
                 m_isConnected = false;
             }
         }
@@ -397,7 +406,11 @@ namespace SMBLibrary.Client
 
         private void Log(string message)
         {
+#if WindowsCE
+            System.Diagnostics.Debug.Write(message);
+#else
             System.Diagnostics.Debug.Print(message);
+#endif
         }
 
         internal void TrySendCommand(SMB2Command request)
@@ -412,7 +425,11 @@ namespace SMBLibrary.Client
                 {
                     request.Header.Signature = new byte[16]; // Request could be reused
                     byte[] buffer = request.GetBytes();
+#if WindowsCE
+                    byte[] signature = new HMACSHA256(m_sessionKey).ComputeHash(buffer);
+#else
                     byte[] signature = new HMACSHA256(m_sessionKey).ComputeHash(buffer, 0, buffer.Length);
+#endif
                     // [MS-SMB2] The first 16 bytes of the hash MUST be copied into the 16-byte signature field of the SMB2 Header.
                     request.Header.Signature = ByteReader.ReadBytes(signature, 0, 16);
                 }

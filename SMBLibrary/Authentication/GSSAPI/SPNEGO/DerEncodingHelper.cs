@@ -90,7 +90,7 @@ namespace SMBLibrary.Authentication.GSSAPI
         public static string DecodeGeneralString(byte[] bytes)
         {
             // We do not support character-set designation escape sequences
-            return ASCIIEncoding.ASCII.GetString(bytes);
+            return ASCIIEncoding.ASCII.GetString(bytes, 0, bytes.Length);
         }
     }
 }

@@ -22,7 +22,11 @@ namespace SMBLibrary
             m_services = services;
         }
 
+#if WindowsCE
+        public NTStatus CreateFile(out object handle, out FileStatus fileStatus, string path, AccessMask desiredAccess, FileAttributes fileAttributes, ShareAccess shareAccess, CreateDisposition createDisposition, CreateOptions createOptions)
+#else
         public NTStatus CreateFile(out object handle, out FileStatus fileStatus, string path, AccessMask desiredAccess, FileAttributes fileAttributes, ShareAccess shareAccess, CreateDisposition createDisposition, CreateOptions createOptions, SecurityContext securityContext)
+#endif
         {
             fileStatus = FileStatus.FILE_DOES_NOT_EXIST;
             // It is possible to have a named pipe that does not use RPC (e.g. MS-WSP),

@@ -167,7 +167,13 @@ namespace SMBLibrary.SMB2
                 if (command.Header.IsSigned && sessionKey != null)
                 {
                     // [MS-SMB2] Any padding at the end of the message MUST be used in the hash computation.
+#if WindowsCE
+                    byte[] content = new byte[paddedLength];
+                    Array.Copy(buffer, offset, content, 0, paddedLength);
+                    byte[] signature = new OpenNETCF.Security.Cryptography.HMACSHA256(sessionKey).ComputeHash(content);
+#else
                     byte[] signature = new HMACSHA256(sessionKey).ComputeHash(buffer, offset, paddedLength);
+#endif
                     // [MS-SMB2] The first 16 bytes of the hash MUST be copied into the 16-byte signature field of the SMB2 Header.
                     ByteWriter.WriteBytes(buffer, offset + SMB2Header.SignatureOffset, signature, 16);
                 }

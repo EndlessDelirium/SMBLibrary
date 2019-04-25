@@ -130,10 +130,14 @@ namespace SMBLibrary.Authentication.NTLM
             {
                 challengeMessage.NegotiateFlags |= NegotiateFlags.KeyExchange;
             }
-
-            challengeMessage.TargetName = Environment.MachineName;
+#if WindowsCE
+            string machineName = OpenNETCF.Environment2.MachineName;
+#else
+            string machineName = Environment.MachineName;
+#endif
+            challengeMessage.TargetName = machineName;
             challengeMessage.ServerChallenge = serverChallenge;
-            challengeMessage.TargetInfo = AVPairUtils.GetAVPairSequence(Environment.MachineName, Environment.MachineName);
+            challengeMessage.TargetInfo = AVPairUtils.GetAVPairSequence(machineName, machineName);
             challengeMessage.Version = NTLMVersion.Server2003;
             return NTStatus.SEC_I_CONTINUE_NEEDED;
         }
@@ -225,7 +229,11 @@ namespace SMBLibrary.Authentication.NTLM
                         // https://msdn.microsoft.com/en-us/library/cc236700.aspx
                         byte[] responseKeyNT = NTLMCryptography.NTOWFv2(password, message.UserName, message.DomainName);
                         byte[] ntProofStr = ByteReader.ReadBytes(message.NtChallengeResponse, 0, 16);
+#if WindowsCE
+                        sessionBaseKey = new OpenNETCF.Security.Cryptography.HMACMD5(responseKeyNT).ComputeHash(ntProofStr);
+#else
                         sessionBaseKey = new HMACMD5(responseKeyNT).ComputeHash(ntProofStr);
+#endif
                         keyExchangeKey = sessionBaseKey;
                     }
                 }

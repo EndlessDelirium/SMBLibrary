@@ -8,6 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using Utilities;
+#if WindowsCE
+using OpenNETCF.Security.Cryptography;
+#endif
 
 namespace SMBLibrary
 {

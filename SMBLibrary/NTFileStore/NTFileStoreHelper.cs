@@ -108,20 +108,28 @@ namespace SMBLibrary
             {
                 result |= FileShare.Write;
             }
-
+#if !WindowsCE  //TODO: Check what we should do here. FileShare.Delete doesn't ecist
             if ((shareAccess & ShareAccess.Delete) > 0)
             {
                 result |= FileShare.Delete;
             }
-
+#endif
             return result;
         }
 
+#if WindowsCE
+        public static FileNetworkOpenInformation GetNetworkOpenInformation(INTFileStore fileStore, string path)
+#else
         public static FileNetworkOpenInformation GetNetworkOpenInformation(INTFileStore fileStore, string path, SecurityContext securityContext)
+#endif
         {
             object handle;
             FileStatus fileStatus;
+#if WindowsCE
+            NTStatus openStatus = fileStore.CreateFile(out handle, out fileStatus, path, (AccessMask)FileAccessMask.FILE_READ_ATTRIBUTES, 0, ShareAccess.Read | ShareAccess.Write, CreateDisposition.FILE_OPEN, 0);
+#else
             NTStatus openStatus = fileStore.CreateFile(out handle, out fileStatus, path, (AccessMask)FileAccessMask.FILE_READ_ATTRIBUTES, 0, ShareAccess.Read | ShareAccess.Write, CreateDisposition.FILE_OPEN, 0, securityContext);
+#endif
             if (openStatus != NTStatus.STATUS_SUCCESS)
             {
                 return null;
